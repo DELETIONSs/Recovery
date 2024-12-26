@@ -1,3 +1,5 @@
+
+
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -12,14 +14,12 @@ local OrionLib = {
 	Flags = {},
 	Themes = {
 		Default = {
-			Main = Color3.fromRGB(26, 26, 28),        -- Dark background color (slightly lighter than pure black)
-			Second = Color3.fromRGB(40, 40, 42),      -- Secondary background, dark gray with a subtle difference
-			Stroke = Color3.fromRGB(63, 63, 70),      -- Dark border/stroke color
-			Divider = Color3.fromRGB(63, 63, 70),     -- Divider color (same as Stroke for consistency)
-			Text = Color3.fromRGB(255, 255, 255),     -- White text for high contrast against dark background
-			TextDark = Color3.fromRGB(189, 189, 189), -- Light gray text for less important items (still readable)
-			Accent = Color3.fromRGB(0, 170, 255),     -- Accent color (Vercel uses blue tones for highlights)
-			Hover = Color3.fromRGB(50, 50, 55)       -- Slightly lighter color for hover effects
+			Main = Color3.fromRGB(25, 25, 25),
+			Second = Color3.fromRGB(32, 32, 32),
+			Stroke = Color3.fromRGB(60, 60, 60),
+			Divider = Color3.fromRGB(60, 60, 60),
+			Text = Color3.fromRGB(240, 240, 240),
+			TextDark = Color3.fromRGB(150, 150, 150)
 		}
 	},
 	SelectedTheme = "Default",
