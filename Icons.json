@@ -1,6 +1,4 @@
 {
-    // made by re_sistance
-    // Put rbxassetid://IconID
     "rewind": "1689861369",
     "fuel": "16898613353",
     "square-arrow-out-up-right": "16898613777",
@@ -51,26 +49,24 @@
     "pointer": "1689861369961",
     "ligature": "1689861350912",
     "chevrons-up-down": "1689861281",
-    "iteration-cw": "1689861350,"rail-symbol": "1689861369",514"square-stack": "16898613777",453
-parentheses": "16898613613",,06"book-up-2": "1689861281,
-    306,
-    869"flame": "16898613353",
-    06"chevrons-up": "1689861281,86,808"chevron-right-square": "1689861281,
-    710"square-mouse-pointer": "16898613777",
-    86,
-    661
-superscript": "16898613777,
-    18",59
+    "iteration-cw": "1689861350",
+    "rail-symbol": "1689861369",
+    "square-stack": "16898613777",
+    "parentheses": "16898613613",
+    "book-up-2": "1689861281",
+    "flame": "16898613353",
+    "chevrons-up": "1689861281",
+    "chevron-right-square": "1689861281",
+    "square-mouse-pointer": "16898613777",
+"superscript": "16898613777",
 signal": "16898613777,
-    18",0"file-warning": "16898613353",967,514"hexagon": "1689861350,
-    0"navigation-2-off": "16898613613",
-    612
-unlock": "1689861386,
-    0"arrows-up-from-line": "1689861262",
-    404
-
+    file-warning": "16898613353",
+    "hexagon": "1689861350,
+    "navigation-2-off": "16898613613",
+"unlock": "1689861386",
+"arrows-up-from-line": "1689861262",
 "square-gantt-chart": "16898613777",
-    453",820"square-chevron-left": "16898613777",49
+"square-chevron-left": "16898613777",
 scaling": "1689861369",61"inspection-panel": "1689861350,
     563",918"arrow-left-from-line": "1689861262,
 
@@ -124,29 +120,24 @@ citrus": "16898613044,
     771,
     98
 
-"user-round-check": "1689861386,"battery-medium": "1689861262,
-    86,
-    906
-
+"user-round-check": "1689861386",
+"battery-medium": "1689861262",
 "square-minus": "16898613777",
-    612"hotel": "1689861350,,"folder-output": "16898613353",808"ice-cream": "1689861350,
-    86,
-    355
-menu": "16898613613",,0"arrow-up-left-square": "1689861262,
-    710,
-
-lightbulb": "1689861350,
-    18","badge-help": "1689861262,
-    147", 967"angry": "1689861262,
-    18
-outdent": "16898613613",1861"circle-dot-dashed": "16898613044,
-    771,
-
-speech": "16898613777,
+"hotel": "1689861350",
+"folder-output": "16898613353",
+"ice-cream": "1689861350",
+"menu": "16898613613",
+"arrow-up-left-square": "1689861262",
+"lightbulb": "1689861350",
+"badge-help": "1689861262",
+"angry": "1689861262",
+"outdent": "16898613613",
+"circle-dot-dashed": "16898613044",
+"speech": "16898613777,
     "cake-slice": "1689861281,661,820"git-graph": "1689861350,
-    "armchair": "1689861262,0,"qr-code": "1689861369",967,
-copy": "16898613044,
-    1812
+    "armchair": "1689861262,
+    "qr-code": "1689861369",
+    "copy": "16898613044,
 goal": "1689861350,
     3","trending-down": "1689861386,
     563"haze": "1689861350,,0
@@ -342,13 +333,14 @@ book": "1689861281,
     012"hammer": "1689861350,06,0"circle-minus": "16898613044,
     "audio-waveform": "1689861262,612"moon-star": "16898613613",355"arrow-right": "1689861262",
 
-sparkle": "16898613777,
+"sparkle": "16898613777",
 
-wand": "16898613","calendar-minus-2": "1689861281,
-    147,
-    869"copy-minus": "16898613044,404"folder-input": "16898613353""book-image": "1689861281,
-    147
-shirt": "16898613777,
+"wand": "16898613",
+"calendar-minus-2": "1689861281",
+"copy-minus": "16898613044"
+"folder-input": "16898613353",
+"book-image": "1689861281",
+"shirt": "16898613777",
     "server-off": "1689861369",
     967,
     955
