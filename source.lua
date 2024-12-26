@@ -19,9 +19,9 @@ local OrionLib = {
 			Text = Color3.fromRGB(255, 255, 255),     -- White text for high contrast against dark background
 			TextDark = Color3.fromRGB(189, 189, 189), -- Light gray text for less important items (still readable)
 			Accent = Color3.fromRGB(0, 170, 255),     -- Accent color (Vercel uses blue tones for highlights)
-			Hover = Color3.fromRGB(50, 50, 55),       -- Slightly lighter color for hover effects
+			Hover = Color3.fromRGB(50, 50, 55)       -- Slightly lighter color for hover effects
 		}
-	}
+	},
 	SelectedTheme = "Default",
 	Folder = nil,
 	SaveCfg = false
