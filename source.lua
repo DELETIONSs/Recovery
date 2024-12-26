@@ -1,14 +1,9 @@
+-- DeletionLibrary ModuleScript
+local DeletionLibrary = {}
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local LocalPlayer = game:GetService("Players").LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
-local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 
--- SimpleUILibrary ModuleScript
-local SimpleUILibrary = {}
-local UserInputService = game:GetService("UserInputService")
-
+-- Color themes
 local ColorThemes = {
     DefaultDark = {
         Main = Color3.fromRGB(25, 25, 25),
@@ -44,25 +39,25 @@ local ColorThemes = {
     },
 }
 
--- Function to create a new UI window
-function SimpleUILibrary:CreateWindow(title, theme)
-    theme = theme or ColorThemes.DefaultDark  -- Default to DefaultDark if no theme is provided
+-- Create a new window
+function DeletionLibrary:MakeWindow(options)
+    local theme = ColorThemes[options.Theme] or ColorThemes.DefaultDark
     local ScreenGui = Instance.new("ScreenGui")
     local MainFrame = Instance.new("Frame")
     local TitleLabel = Instance.new("TextLabel")
     local CloseButton = Instance.new("TextButton")
 
-    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
-    MainFrame.Size = UDim2.new(0, 300, 0, 200)
-    MainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+    MainFrame.Size = UDim2.new(0, 400, 0, 300)
+    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
     MainFrame.BackgroundColor3 = theme.Main
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = ScreenGui
 
     TitleLabel.Size = UDim2.new(1, 0, 0, 40)
     TitleLabel.BackgroundColor3 = theme.Second
-    TitleLabel.Text = title
+    TitleLabel.Text = options.Name or "Untitled"
     TitleLabel.TextColor3 = theme.Text
     TitleLabel.Parent = MainFrame
 
@@ -74,78 +69,47 @@ function SimpleUILibrary:CreateWindow(title, theme)
 
     CloseButton.MouseButton1Click:Connect(function()
         ScreenGui:Destroy()
-    end)
-
-    return MainFrame
-end
-
--- Function to create a button
-function SimpleUILibrary:CreateButton(parent, text, callback, theme)
-    theme = theme or ColorThemes.DefaultDark  -- Default to DefaultDark if no theme is provided
-    local Button = Instance.new("TextButton")
-
-    Button.Size = UDim2.new(1, 0, 0, 50)
-    Button.BackgroundColor3 = theme.Stroke
-    Button.Text = text
-    Button.TextColor3 = theme.Text
-    Button.Parent = parent
-
-    Button.MouseButton1Click:Connect(function()
-        if callback then
-            callback()
+        if options.CloseCallback then
+            options.CloseCallback()
         end
     end)
 
-    return Button
+    return {
+        MakeTab = function(tabOptions)
+            return self:MakeTab(MainFrame, tabOptions, theme)
+        end,
+        -- Other methods can be added here
+    }
 end
 
--- Function to create a slider
-function SimpleUILibrary:CreateSlider(parent, min, max, default, callback, theme)
-    theme = theme or ColorThemes.DefaultDark  -- Default to DefaultDark if no theme is provided
-    local SliderFrame = Instance.new("Frame")
-    local SliderBar = Instance.new("Frame")
-    local SliderButton = Instance.new("TextButton")
-    local ValueLabel = Instance.new("TextLabel")
+-- Create a new tab
+function DeletionLibrary:MakeTab(parent, options, theme)
+    local TabFrame = Instance.new("Frame")
+    local TabButton = Instance.new("TextButton")
+    local TabContent = Instance.new("Frame")
 
-    SliderFrame.Size = UDim2.new(1, 0, 0, 50)
-    SliderFrame.BackgroundColor3 = theme.Main
-    SliderFrame.Parent = parent
+    TabFrame.Size = UDim2.new(1, 0, 1, 0)
+    TabFrame.BackgroundColor3 = theme.Main
+    TabFrame.Visible = false
+    TabFrame.Parent = parent
 
-    SliderBar.Size = UDim2.new(1, 0, 0, 10)
-    SliderBar.Position = UDim2.new(0, 0, 0.5, -5)
-    SliderBar.BackgroundColor3 = theme.Stroke
-    SliderBar.Parent = SliderFrame
+    TabButton.Size = UDim2.new(0, 100, 0, 40)
+    TabButton.BackgroundColor3 = theme.Second
+    TabButton.Text = options.Name or "Tab"
+    TabButton.TextColor3 = theme.Text
+    TabButton.Parent = parent
 
-    SliderButton.Size = UDim2.new(0, 20, 0, 20)
-    SliderButton.Position = UDim2.new((default - min) / (max - min), 0, 0, -5)
-    SliderButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
-    SliderButton.Text = ""
-    SliderButton.Parent = SliderBar
-
-    ValueLabel.Size = UDim2.new(1, 0, 0, 20)
-    ValueLabel.Position = UDim2.new(0, 0, 1, 0)
-    ValueLabel.Text = "Value: " .. default
-    ValueLabel.TextColor3 = theme.Text
-    ValueLabel.Parent = SliderFrame
-
-    -- Set initial value
-    SliderButton.Position = UDim2.new((default - min) / (max - min), 0, 0, -5)
-
-    SliderButton.MouseDrag:Connect(function()
-        local mouseX = UserInputService:GetMouseLocation().X
-        local sliderX = SliderBar.AbsolutePosition.X
-        local sliderWidth = SliderBar.AbsoluteSize.X
-
-        local newValue = math.clamp((mouseX - sliderX) / sliderWidth, 0, 1) * (max - min) + min
-        SliderButton.Position = UDim2.new((newValue - min) / (max - min), 0, 0, -5)
-        ValueLabel.Text = "Value: " .. math.floor(newValue)
-
-        if callback then
-            callback(newValue)
-        end
+    TabButton.MouseButton1Click:Connect(function()
+        TabFrame.Visible = not TabFrame.Visible
     end)
 
-    return SliderFrame
+    TabContent.Size = UDim2.new(1, 0, 1, 0)
+    TabContent.BackgroundColor3 = theme.Second
+    TabContent.Parent = TabFrame
+
+    return {
+        -- Additional methods for the tab can be added here
+    }
 end
 
-return SimpleUILibrary
+return DeletionLibrary
