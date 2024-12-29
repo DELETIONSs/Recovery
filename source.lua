@@ -106,43 +106,94 @@ function DeletionLibrary:MakeTab(parent, options, theme)
     TabContent.BackgroundColor3 = theme.Second
     TabContent.Parent = TabFrame
 
-    -- Add additional UI elements (Buttons, Toggles, Sliders)
-    if options.AddButton then
+    -- Add button functionality
+    function options:AddButton(buttonOptions)
         local Button = Instance.new("TextButton")
         Button.Size = UDim2.new(0, 200, 0, 50)
         Button.Position = UDim2.new(0.5, -100, 0, 10)
-        Button.Text = "Click Me"
+        Button.Text = buttonOptions.Name or "Button"
         Button.BackgroundColor3 = theme.Second
         Button.TextColor3 = theme.Text
+        Button.Font = Enum.Font.Gotham
+        Button.TextSize = 16
         Button.Parent = TabContent
-        Button.MouseButton1Click:Connect(function()
-            print("Button clicked!")
+
+        -- Hover effect
+        Button.MouseEnter:Connect(function()
+            Button.BackgroundColor3 = theme.Stroke
         end)
-    end
 
-    if options.AddSlider then
-        local Slider = Instance.new("Frame")
-        Slider.Size = UDim2.new(0, 300, 0, 20)
-        Slider.Position = UDim2.new(0.5, -150, 0, 70)
-        Slider.BackgroundColor3 = theme.Second
-        Slider.Parent = TabContent
+        Button.MouseLeave:Connect(function()
+            Button.BackgroundColor3 = theme.Second
+        end)
 
-        local Knob = Instance.new("Frame")
-        Knob.Size = UDim2.new(0, 20, 0, 20)
-        Knob.Position = UDim2.new(0, 0, 0, 0)
-        Knob.BackgroundColor3 = theme.Text
-        Knob.Parent = Slider
-
-        Slider.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement then
-                local mouseX = input.Position.X - Slider.AbsolutePosition.X
-                Knob.Position = UDim2.new(0, math.clamp(mouseX, 0, 300), 0, 0)
+        -- Button click event with callback
+        Button.MouseButton1Click:Connect(function()
+            if buttonOptions.Callback then
+                buttonOptions.Callback()
             end
         end)
     end
 
+    -- Add toggle functionality
+    function options:AddToggle(toggleOptions)
+        local ToggleFrame = Instance.new("Frame")
+        ToggleFrame.Size = UDim2.new(0, 250, 0, 50)
+        ToggleFrame.Position = UDim2.new(0.5, -125, 0, 10)
+        ToggleFrame.BackgroundColor3 = theme.Second
+        ToggleFrame.Parent = TabContent
+
+        local ToggleLabel = Instance.new("TextLabel")
+        ToggleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+        ToggleLabel.Text = toggleOptions.Name or "Toggle"
+        ToggleLabel.TextColor3 = theme.Text
+        ToggleLabel.TextSize = 16
+        ToggleLabel.BackgroundTransparency = 1
+        ToggleLabel.Parent = ToggleFrame
+
+        local ToggleSwitch = Instance.new("Frame")
+        ToggleSwitch.Size = UDim2.new(0, 50, 0, 25)
+        ToggleSwitch.Position = UDim2.new(0.8, 0, 0.5, -12)
+        ToggleSwitch.BackgroundColor3 = theme.Stroke
+        ToggleSwitch.Parent = ToggleFrame
+
+        local ToggleCircle = Instance.new("Frame")
+        ToggleCircle.Size = UDim2.new(0, 20, 0, 20)
+        ToggleCircle.Position = UDim2.new(0, 0, 0, 0)
+        ToggleCircle.BackgroundColor3 = theme.Text
+        ToggleCircle.BorderSizePixel = 0
+        ToggleCircle.Parent = ToggleSwitch
+
+        local isToggled = toggleOptions.Default or false
+
+        -- Animate the toggle
+        local function updateTogglePosition()
+            local targetPosition = isToggled and UDim2.new(1, -20, 0, 0) or UDim2.new(0, 0, 0, 0)
+            ToggleCircle:TweenPosition(targetPosition, Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.2, true)
+        end
+
+        -- Set initial position based on default value
+        updateTogglePosition()
+
+        -- Toggle the switch on click
+        ToggleSwitch.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                isToggled = not isToggled
+                updateTogglePosition()
+
+                -- Call the callback with the new value
+                if toggleOptions.Callback then
+                    toggleOptions.Callback(isToggled)
+                end
+            end
+        end)
+
+    end
+
     return {
-        -- Additional methods for the tab can be added here
+        -- Return the AddButton and AddToggle methods
+        AddButton = options.AddButton,
+        AddToggle = options.AddToggle,
     }
 end
 
