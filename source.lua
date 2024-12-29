@@ -12,30 +12,7 @@ local ColorThemes = {
         Text = Color3.fromRGB(240, 240, 240),
         TextDark = Color3.fromRGB(150, 150, 150)
     },
-    DeepOcean = {
-        Main = Color3.fromRGB(0, 0, 50),
-        Second = Color3.fromRGB(0, 0, 100),
-        Stroke = Color3.fromRGB(0, 100, 200),
-        Divider = Color3.fromRGB(0, 50, 100),
-        Text = Color3.fromRGB(240, 240, 240),
-        TextDark = Color3.fromRGB(180, 180, 180)
-    },
-    Vercel = {
-        Main = Color3.fromRGB(255, 255, 255),
-        Second = Color3.fromRGB(240, 240, 240),
-        Stroke = Color3.fromRGB(200, 200, 200),
-        Divider = Color3.fromRGB(180, 180, 180),
-        Text = Color3.fromRGB(0, 0, 0),
-        TextDark = Color3.fromRGB(100, 100, 100)
-    },
-    Apple = {
-        Main = Color3.fromRGB(255, 255, 255),
-        Second = Color3.fromRGB(240, 240, 240),
-        Stroke = Color3.fromRGB(200, 200, 200),
-        Divider = Color3.fromRGB(150, 150, 150),
-        Text = Color3.fromRGB(0, 0, 0),
-        TextDark = Color3.fromRGB(50, 50, 50)
-    },
+    -- Additional themes...
 }
 
 -- Create a new window
@@ -76,8 +53,7 @@ function DeletionLibrary:MakeWindow(options)
     return {
         MakeTab = function(tabOptions)
             return self:MakeTab(MainFrame, tabOptions, theme)
-        end,
-        -- Other methods can be added here
+        end
     }
 end
 
@@ -106,7 +82,7 @@ function DeletionLibrary:MakeTab(parent, options, theme)
     TabContent.BackgroundColor3 = theme.Second
     TabContent.Parent = TabFrame
 
-    -- Add button functionality
+    -- Separate AddButton method
     function options:AddButton(buttonOptions)
         local Button = Instance.new("TextButton")
         Button.Size = UDim2.new(0, 200, 0, 50)
@@ -135,7 +111,7 @@ function DeletionLibrary:MakeTab(parent, options, theme)
         end)
     end
 
-    -- Add toggle functionality
+    -- Separate AddToggle method
     function options:AddToggle(toggleOptions)
         local ToggleFrame = Instance.new("Frame")
         ToggleFrame.Size = UDim2.new(0, 250, 0, 50)
@@ -187,11 +163,9 @@ function DeletionLibrary:MakeTab(parent, options, theme)
                 end
             end
         end)
-
     end
 
     return {
-        -- Return the AddButton and AddToggle methods
         AddButton = options.AddButton,
         AddToggle = options.AddToggle,
     }
