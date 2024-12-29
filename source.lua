@@ -1,4 +1,3 @@
--- DeletionLibrary ModuleScript
 local DeletionLibrary = {}
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
@@ -106,6 +105,41 @@ function DeletionLibrary:MakeTab(parent, options, theme)
     TabContent.Size = UDim2.new(1, 0, 1, 0)
     TabContent.BackgroundColor3 = theme.Second
     TabContent.Parent = TabFrame
+
+    -- Add additional UI elements (Buttons, Toggles, Sliders)
+    if options.AddButton then
+        local Button = Instance.new("TextButton")
+        Button.Size = UDim2.new(0, 200, 0, 50)
+        Button.Position = UDim2.new(0.5, -100, 0, 10)
+        Button.Text = "Click Me"
+        Button.BackgroundColor3 = theme.Second
+        Button.TextColor3 = theme.Text
+        Button.Parent = TabContent
+        Button.MouseButton1Click:Connect(function()
+            print("Button clicked!")
+        end)
+    end
+
+    if options.AddSlider then
+        local Slider = Instance.new("Frame")
+        Slider.Size = UDim2.new(0, 300, 0, 20)
+        Slider.Position = UDim2.new(0.5, -150, 0, 70)
+        Slider.BackgroundColor3 = theme.Second
+        Slider.Parent = TabContent
+
+        local Knob = Instance.new("Frame")
+        Knob.Size = UDim2.new(0, 20, 0, 20)
+        Knob.Position = UDim2.new(0, 0, 0, 0)
+        Knob.BackgroundColor3 = theme.Text
+        Knob.Parent = Slider
+
+        Slider.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement then
+                local mouseX = input.Position.X - Slider.AbsolutePosition.X
+                Knob.Position = UDim2.new(0, math.clamp(mouseX, 0, 300), 0, 0)
+            end
+        end)
+    end
 
     return {
         -- Additional methods for the tab can be added here
