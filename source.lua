@@ -15,7 +15,7 @@ local ColorThemes = {
     -- Additional themes...
 }
 
--- Create a new window
+-- Create a new window with glassmorphism
 function DeletionLibrary:MakeWindow(options)
     local theme = ColorThemes[options.Theme] or ColorThemes.DefaultDark
     local ScreenGui = Instance.new("ScreenGui")
@@ -23,20 +23,35 @@ function DeletionLibrary:MakeWindow(options)
     local TitleLabel = Instance.new("TextLabel")
     local CloseButton = Instance.new("TextButton")
 
+    -- Create the ScreenGui and position it
     ScreenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
     MainFrame.Size = UDim2.new(0, 400, 0, 300)
     MainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
     MainFrame.BackgroundColor3 = theme.Main
+    MainFrame.BackgroundTransparency = 0.5 -- Make background slightly transparent
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = ScreenGui
 
+    -- Add blur effect to achieve glassmorphism
+    local blurEffect = Instance.new("BlurEffect")
+    blurEffect.Size = 15
+    blurEffect.Parent = MainFrame
+
+    -- Add gradient to enhance the frosted effect
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))})
+    gradient.Rotation = 45
+    gradient.Parent = MainFrame
+
+    -- Create Title Label
     TitleLabel.Size = UDim2.new(1, 0, 0, 40)
     TitleLabel.BackgroundColor3 = theme.Second
     TitleLabel.Text = options.Name or "Untitled"
     TitleLabel.TextColor3 = theme.Text
     TitleLabel.Parent = MainFrame
 
+    -- Close Button
     CloseButton.Size = UDim2.new(0, 30, 0, 30)
     CloseButton.Position = UDim2.new(1, -35, 0, 5)
     CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
@@ -57,7 +72,7 @@ function DeletionLibrary:MakeWindow(options)
     }
 end
 
--- Create a new tab
+-- Create a new tab with glassmorphism effects
 function DeletionLibrary:MakeTab(parent, options, theme)
     local TabFrame = Instance.new("Frame")
     local TabButton = Instance.new("TextButton")
@@ -68,6 +83,18 @@ function DeletionLibrary:MakeTab(parent, options, theme)
     TabFrame.Visible = false
     TabFrame.Parent = parent
 
+    -- Add blur effect and transparency for glassmorphism
+    local blurEffect = Instance.new("BlurEffect")
+    blurEffect.Size = 15
+    blurEffect.Parent = TabFrame
+
+    -- Add gradient to the tab
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 50, 50))})
+    gradient.Rotation = 45
+    gradient.Parent = TabFrame
+
+    -- Tab Button
     TabButton.Size = UDim2.new(0, 100, 0, 40)
     TabButton.BackgroundColor3 = theme.Second
     TabButton.Text = options.Name or "Tab"
@@ -78,11 +105,12 @@ function DeletionLibrary:MakeTab(parent, options, theme)
         TabFrame.Visible = not TabFrame.Visible
     end)
 
+    -- Tab Content with a subtle blur
     TabContent.Size = UDim2.new(1, 0, 1, 0)
     TabContent.BackgroundColor3 = theme.Second
     TabContent.Parent = TabFrame
 
-    -- Separate AddButton method
+    -- Separate AddButton method with glassmorphism
     function options:AddButton(buttonOptions)
         local Button = Instance.new("TextButton")
         Button.Size = UDim2.new(0, 200, 0, 50)
@@ -93,6 +121,11 @@ function DeletionLibrary:MakeTab(parent, options, theme)
         Button.Font = Enum.Font.Gotham
         Button.TextSize = 16
         Button.Parent = TabContent
+
+        -- Add blur effect for glassmorphism on the button
+        local blurEffect = Instance.new("BlurEffect")
+        blurEffect.Size = 5
+        blurEffect.Parent = Button
 
         -- Hover effect
         Button.MouseEnter:Connect(function()
@@ -111,13 +144,18 @@ function DeletionLibrary:MakeTab(parent, options, theme)
         end)
     end
 
-    -- Separate AddToggle method
+    -- Separate AddToggle method with glassmorphism
     function options:AddToggle(toggleOptions)
         local ToggleFrame = Instance.new("Frame")
         ToggleFrame.Size = UDim2.new(0, 250, 0, 50)
         ToggleFrame.Position = UDim2.new(0.5, -125, 0, 10)
         ToggleFrame.BackgroundColor3 = theme.Second
         ToggleFrame.Parent = TabContent
+
+        -- Add blur effect to the toggle frame for glassmorphism
+        local blurEffect = Instance.new("BlurEffect")
+        blurEffect.Size = 5
+        blurEffect.Parent = ToggleFrame
 
         local ToggleLabel = Instance.new("TextLabel")
         ToggleLabel.Size = UDim2.new(0.7, 0, 1, 0)
