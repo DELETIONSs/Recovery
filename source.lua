@@ -1,17 +1,55 @@
 local UILibrary = {}
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
 
--- Function to add smooth dragging functionality
+-- Default Themes: Light Acrylic Glass and Dark Theme
+local themes = {
+    LightAcrylicGlass = {
+        BackgroundColor = Color3.fromRGB(240, 240, 240),
+        TopBarColor = Color3.fromRGB(200, 200, 200),
+        SidebarColor = Color3.fromRGB(230, 230, 230),
+        ContentFrameColor = Color3.fromRGB(255, 255, 255),
+        CloseButtonColor = Color3.fromRGB(255, 0, 0),
+        MinimizeButtonColor = Color3.fromRGB(255, 255, 0),
+        TextColor = Color3.fromRGB(0, 0, 0),
+        Transparency = 0.3,
+    },
+    DarkTheme = {
+        BackgroundColor = Color3.fromRGB(50, 50, 50),
+        TopBarColor = Color3.fromRGB(70, 70, 70),
+        SidebarColor = Color3.fromRGB(60, 60, 60),
+        ContentFrameColor = Color3.fromRGB(40, 40, 40),
+        CloseButtonColor = Color3.fromRGB(255, 0, 0),
+        MinimizeButtonColor = Color3.fromRGB(255, 255, 0),
+        TextColor = Color3.fromRGB(255, 255, 255),
+        Transparency = 0.5,
+    }
+}
+
+local currentTheme = themes.LightAcrylicGlass
+
+-- Function to apply a theme to all UI elements
+local function applyTheme(MainFrame, TopBar, Sidebar, ContentFrame, CloseButton, MinimizeButton, TitleLabel, theme)
+    MainFrame.BackgroundColor3 = theme.BackgroundColor
+    MainFrame.BackgroundTransparency = theme.Transparency
+    TopBar.BackgroundColor3 = theme.TopBarColor
+    Sidebar.BackgroundColor3 = theme.SidebarColor
+    ContentFrame.BackgroundColor3 = theme.ContentFrameColor
+    CloseButton.BackgroundColor3 = theme.CloseButtonColor
+    MinimizeButton.BackgroundColor3 = theme.MinimizeButtonColor
+    TitleLabel.TextColor3 = theme.TextColor
+end
+
+-- Add Dragging Functionality to the Window
 local function AddDraggingFunctionality(DragPoint, Main)
     pcall(function()
-        local Dragging, DragInput, MousePos, FramePos = false
+        local Dragging, DragInput, MousePos, FramePos = false, nil, nil, nil
         DragPoint.InputBegan:Connect(function(Input)
             if Input.UserInputType == Enum.UserInputType.MouseButton1 then
                 Dragging = true
                 MousePos = Input.Position
                 FramePos = Main.Position
-
                 Input.Changed:Connect(function()
                     if Input.UserInputState == Enum.UserInputState.End then
                         Dragging = false
@@ -27,64 +65,56 @@ local function AddDraggingFunctionality(DragPoint, Main)
         UserInputService.InputChanged:Connect(function(Input)
             if Input == DragInput and Dragging then
                 local Delta = Input.Position - MousePos
-                TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = UDim2.new(FramePos.X.Scale, FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)}):Play()
+                TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                    Position = UDim2.new(FramePos.X.Scale, FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
+                }):Play()
             end
         end)
     end)
 end
 
--- CreateWindow function
-function UILibrary:CreateWindow(title)
-    -- Error handling: Check if title is provided
-    if not title then
-        error("Title is required for the window!")
-    end
-
+-- Create the Main Window
+function UILibrary:MakeWindow(settings)
     local ScreenGui = Instance.new("ScreenGui")
     local MainFrame = Instance.new("Frame")
-    local MainFrameCorner = Instance.new("UICorner")
     local TopBar = Instance.new("Frame")
     local CloseButton = Instance.new("TextButton")
     local MinimizeButton = Instance.new("TextButton")
     local Sidebar = Instance.new("Frame")
     local ContentFrame = Instance.new("Frame")
     local TitleLabel = Instance.new("TextLabel")
-    local TabButtons = {} -- To store tab buttons
-
+    local CustomizationTabButton = Instance.new("TextButton")
+    
     -- ScreenGui
-    ScreenGui.Name = "CustomUILibrary"
+    ScreenGui.Name = settings.Name or "CustomUILibrary"
     ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
     -- MainFrame
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-    MainFrame.BackgroundTransparency = 0.3
+    MainFrame.BackgroundColor3 = currentTheme.BackgroundColor
+    MainFrame.BackgroundTransparency = currentTheme.Transparency
     MainFrame.Size = UDim2.new(0, 600, 0, 400)
     MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
     MainFrame.BorderSizePixel = 0
 
-    -- MainFrame Corner
-    MainFrameCorner.Parent = MainFrame
-    MainFrameCorner.CornerRadius = UDim.new(0, 10)
-
     -- TopBar
     TopBar.Name = "TopBar"
     TopBar.Parent = MainFrame
-    TopBar.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    TopBar.BackgroundColor3 = currentTheme.TopBarColor
     TopBar.Size = UDim2.new(1, 0, 0, 40)
-    TopBar.BorderSizePixel = 0
 
-    -- Close Button (White X Icon)
+    -- Close Button
     CloseButton.Name = "CloseButton"
     CloseButton.Parent = TopBar
-    CloseButton.BackgroundTransparency = 1
+    CloseButton.BackgroundColor3 = currentTheme.CloseButtonColor
     CloseButton.Size = UDim2.new(0, 40, 1, 0)
     CloseButton.Position = UDim2.new(1, -40, 0, 0)
-    CloseButton.Text = ""
-    CloseButton.Image = "rbxassetid://6031090057" -- White X Icon
+    CloseButton.Text = "X"
+    CloseButton.Font = Enum.Font.SourceSansBold
+    CloseButton.TextSize = 16
+    CloseButton.TextColor3 = currentTheme.TextColor
 
-    -- Close Button Functionality
     CloseButton.MouseButton1Click:Connect(function()
         ScreenGui:Destroy()
     end)
@@ -92,36 +122,31 @@ function UILibrary:CreateWindow(title)
     -- Minimize Button
     MinimizeButton.Name = "MinimizeButton"
     MinimizeButton.Parent = TopBar
-    MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+    MinimizeButton.BackgroundColor3 = currentTheme.MinimizeButtonColor
     MinimizeButton.Size = UDim2.new(0, 40, 1, 0)
     MinimizeButton.Position = UDim2.new(1, -80, 0, 0)
     MinimizeButton.Text = "-"
     MinimizeButton.Font = Enum.Font.SourceSansBold
     MinimizeButton.TextSize = 16
-    MinimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+    MinimizeButton.TextColor3 = currentTheme.TextColor
 
-    -- Minimize Button Functionality
-    local minimized = false
     MinimizeButton.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        MainFrame.Visible = not minimized
+        MainFrame.Visible = not MainFrame.Visible
     end)
 
     -- Sidebar
     Sidebar.Name = "Sidebar"
     Sidebar.Parent = MainFrame
-    Sidebar.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+    Sidebar.BackgroundColor3 = currentTheme.SidebarColor
     Sidebar.Size = UDim2.new(0, 150, 1, -40)
     Sidebar.Position = UDim2.new(0, 0, 0, 40)
-    Sidebar.BorderSizePixel = 0
 
     -- Content Frame
     ContentFrame.Name = "ContentFrame"
     ContentFrame.Parent = MainFrame
-    ContentFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ContentFrame.BackgroundColor3 = currentTheme.ContentFrameColor
     ContentFrame.Size = UDim2.new(1, -150, 1, -40)
     ContentFrame.Position = UDim2.new(0, 150, 0, 40)
-    ContentFrame.BorderSizePixel = 0
 
     -- Title Label
     TitleLabel.Name = "TitleLabel"
@@ -129,115 +154,117 @@ function UILibrary:CreateWindow(title)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Size = UDim2.new(1, -80, 1, 0)
     TitleLabel.Font = Enum.Font.SourceSansBold
-    TitleLabel.Text = title or "UI Library"
+    TitleLabel.Text = settings.Name or "UI Library"
     TitleLabel.TextSize = 20
-    TitleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+    TitleLabel.TextColor3 = currentTheme.TextColor
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Use AddDraggingFunctionality to make the window draggable
+    -- Apply theme to UI elements
+    applyTheme(MainFrame, TopBar, Sidebar, ContentFrame, CloseButton, MinimizeButton, TitleLabel, currentTheme)
+
+    -- Make the window draggable
     AddDraggingFunctionality(TopBar, MainFrame)
 
-    -- Add tabs to Sidebar
-    local function addTab(tabName, content)
+    -- Make the Tabs
+    function UILibrary:MakeTab(tabSettings)
+        local Tab = {}
         local TabButton = Instance.new("TextButton")
+        TabButton.Name = tabSettings.Name
         TabButton.Parent = Sidebar
-        TabButton.Name = tabName
+        TabButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
         TabButton.Size = UDim2.new(1, 0, 0, 40)
-        TabButton.Text = tabName
-        TabButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-        TabButton.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
-        TabButton.Font = Enum.Font.SourceSansBold
-        TabButton.TextSize = 16
+        TabButton.Text = tabSettings.Name
+        TabButton.Font = Enum.Font.SourceSans
+        TabButton.TextColor3 = currentTheme.TextColor
+        TabButton.TextSize = 18
 
-        -- When the tab is clicked, show its content
+        -- When tab is clicked, show its content
         TabButton.MouseButton1Click:Connect(function()
-            for _, button in pairs(TabButtons) do
-                button.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
-            end
-            TabButton.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
-            ContentFrame:ClearAllChildren()
-            content(ContentFrame)
+            ContentFrame.Visible = true
         end)
 
-        table.insert(TabButtons, TabButton)
+        function Tab:AddSection(sectionSettings)
+            local Section = Instance.new("Frame")
+            Section.Parent = ContentFrame
+            Section.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            Section.Size = UDim2.new(1, 0, 0, 100)
+            Section.Position = UDim2.new(0, 0, 0, 0)
+
+            local SectionTitle = Instance.new("TextLabel")
+            SectionTitle.Parent = Section
+            SectionTitle.Text = sectionSettings.Name
+            SectionTitle.Size = UDim2.new(1, 0, 0, 30)
+            SectionTitle.TextColor3 = currentTheme.TextColor
+            SectionTitle.BackgroundTransparency = 1
+            SectionTitle.Font = Enum.Font.SourceSans
+            SectionTitle.TextSize = 16
+
+            -- Adding button, toggle, slider to the section later
+        end
+
+        return Tab
     end
 
-    -- Customization Tab (UI Customization)
-    addTab("Customization", function(parent)
-        -- Color Picker for Background
-        local bgColorButton = Instance.new("TextButton")
-        bgColorButton.Parent = parent
-        bgColorButton.Size = UDim2.new(0, 200, 0, 30)
-        bgColorButton.Text = "Change Background Color"
-        bgColorButton.Position = UDim2.new(0, 10, 0, 10)
-        bgColorButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    -- MakeNotification Function
+    function UILibrary:MakeNotification(notificationSettings)
+        local NotificationFrame = Instance.new("Frame")
+        local TitleLabel = Instance.new("TextLabel")
+        local ContentLabel = Instance.new("TextLabel")
+        local ImageLabel = Instance.new("ImageLabel")
+        local CloseButton = Instance.new("TextButton")
         
-        bgColorButton.MouseButton1Click:Connect(function()
-            -- Change the background color of the MainFrame
-            MainFrame.BackgroundColor3 = Color3.fromRGB(math.random(0,255), math.random(0,255), math.random(0,255))
+        -- Setup Frame
+        NotificationFrame.Parent = ScreenGui
+        NotificationFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+        NotificationFrame.BackgroundTransparency = 0.5
+        NotificationFrame.Size = UDim2.new(0, 300, 0, 150)
+        NotificationFrame.Position = UDim2.new(0.5, -150, 0.8, 0)
+        NotificationFrame.BorderSizePixel = 0
+
+        -- Title
+        TitleLabel.Parent = NotificationFrame
+        TitleLabel.Text = notificationSettings.Name or "Notification"
+        TitleLabel.Size = UDim2.new(1, 0, 0, 30)
+        TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TitleLabel.BackgroundTransparency = 1
+        TitleLabel.Font = Enum.Font.SourceSansBold
+        TitleLabel.TextSize = 18
+
+        -- Content
+        ContentLabel.Parent = NotificationFrame
+        ContentLabel.Text = notificationSettings.Content or "No Content"
+        ContentLabel.Size = UDim2.new(1, 0, 0, 60)
+        ContentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ContentLabel.BackgroundTransparency = 1
+        ContentLabel.Font = Enum.Font.SourceSans
+        ContentLabel.TextSize = 14
+
+        -- Image
+        ImageLabel.Parent = NotificationFrame
+        ImageLabel.Image = notificationSettings.Image or "rbxassetid://4483345998"
+        ImageLabel.Size = UDim2.new(0, 50, 0, 50)
+        ImageLabel.Position = UDim2.new(0, 10, 0, 50)
+
+        -- Close button
+        CloseButton.Parent = NotificationFrame
+        CloseButton.Text = "X"
+        CloseButton.Size = UDim2.new(0, 40, 0, 40)
+        CloseButton.Position = UDim2.new(1, -40, 0, 0)
+        CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        CloseButton.Font = Enum.Font.SourceSansBold
+        CloseButton.TextSize = 18
+
+        -- Close Button Logic
+        CloseButton.MouseButton1Click:Connect(function()
+            NotificationFrame:Destroy()
         end)
 
-        -- Font Selector
-        local fontLabel = Instance.new("TextLabel")
-        fontLabel.Parent = parent
-        fontLabel.Size = UDim2.new(0, 200, 0, 30)
-        fontLabel.Text = "Select Font"
-        fontLabel.Position = UDim2.new(0, 10, 0, 50)
-        fontLabel.BackgroundTransparency = 1
-
-        local fontDropdown = Instance.new("TextButton")
-        fontDropdown.Parent = parent
-        fontDropdown.Size = UDim2.new(0, 200, 0, 30)
-        fontDropdown.Text = "Choose Font"
-        fontDropdown.Position = UDim2.new(0, 10, 0, 80)
-
-        fontDropdown.MouseButton1Click:Connect(function()
-            -- Change the font of the TitleLabel
-            TitleLabel.Font = Enum.Font.Gotham -- You can change this to any font you want
+        -- Auto-close after a certain time
+        delay(notificationSettings.Time or 5, function()
+            NotificationFrame:Destroy()
         end)
-    end)
-
-    -- Player Info Tab (Automatically Added)
-    addTab("Player Info", function(parent)
-        local usernameLabel = Instance.new("TextLabel")
-        usernameLabel.Parent = parent
-        usernameLabel.Text = "Username: " .. game.Players.LocalPlayer.Name
-        usernameLabel.Size = UDim2.new(0, 200, 0, 30)
-        usernameLabel.Position = UDim2.new(0, 10, 0, 10)
-        usernameLabel.BackgroundTransparency = 1
-        
-        local levelLabel = Instance.new("TextLabel")
-        levelLabel.Parent = parent
-        levelLabel.Text = "Level: 1"  -- This would be dynamic based on player data
-        levelLabel.Size = UDim2.new(0, 200, 0, 30)
-        levelLabel.Position = UDim2.new(0, 10, 0, 50)
-        levelLabel.BackgroundTransparency = 1
-
-        local scoreLabel = Instance.new("TextLabel")
-        scoreLabel.Parent = parent
-        scoreLabel.Text = "Score: 1000"  -- This would be dynamic as well
-        scoreLabel.Size = UDim2.new(0, 200, 0, 30)
-        scoreLabel.Position = UDim2.new(0, 10, 0, 90)
-        scoreLabel.BackgroundTransparency = 1
-    end)
-
-    -- Chat Logger Tab (Automatically Added)
-    addTab("Chat Logger", function(parent)
-        local chatBox = Instance.new("TextBox")
-        chatBox.Parent = parent
-        chatBox.Size = UDim2.new(0, 200, 0, 200)
-        chatBox.Position = UDim2.new(0, 10, 0, 10)
-        chatBox.Text = ""
-        chatBox.TextColor3 = Color3.fromRGB(0, 0, 0)
-        chatBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        chatBox.TextSize = 14
-        chatBox.ClearTextOnFocus = false
-
-        -- Log chat messages
-        game:GetService("Chat").ChatBar.MessageSent:Connect(function(message)
-            chatBox.Text = chatBox.Text .. message .. "\n"
-        end)
-    end)
+    end
 
     return UILibrary
 end
