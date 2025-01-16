@@ -1,272 +1,193 @@
-local UILibrary = {}
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
+local OrionLib = {}
+OrionLib.Folder = "OrionLibrary"
+OrionLib.SaveCfg = false
+OrionLib.UI = {}
+OrionLib.NotificationHolder = Instance.new("Frame")
+OrionLib.NotificationHolder.Parent = game.Players.LocalPlayer.PlayerGui
+OrionLib.NotificationHolder.Position = UDim2.new(0, 0, 1, -55)
+OrionLib.NotificationHolder.Size = UDim2.new(0, 300, 0, 0)
 
--- Default Themes: Light Acrylic Glass and Dark Theme
-local themes = {
-    LightAcrylicGlass = {
-        BackgroundColor = Color3.fromRGB(240, 240, 240),
-        TopBarColor = Color3.fromRGB(200, 200, 200),
-        SidebarColor = Color3.fromRGB(230, 230, 230),
-        ContentFrameColor = Color3.fromRGB(255, 255, 255),
-        CloseButtonColor = Color3.fromRGB(255, 0, 0),
-        MinimizeButtonColor = Color3.fromRGB(255, 255, 0),
-        TextColor = Color3.fromRGB(0, 0, 0),
-        Transparency = 0.3,
-    },
-    DarkTheme = {
-        BackgroundColor = Color3.fromRGB(50, 50, 50),
-        TopBarColor = Color3.fromRGB(70, 70, 70),
-        SidebarColor = Color3.fromRGB(60, 60, 60),
-        ContentFrameColor = Color3.fromRGB(40, 40, 40),
-        CloseButtonColor = Color3.fromRGB(255, 0, 0),
-        MinimizeButtonColor = Color3.fromRGB(255, 255, 0),
-        TextColor = Color3.fromRGB(255, 255, 255),
-        Transparency = 0.5,
-    }
-}
-
-local currentTheme = themes.LightAcrylicGlass
-
--- Function to apply a theme to all UI elements
-local function applyTheme(MainFrame, TopBar, Sidebar, ContentFrame, CloseButton, MinimizeButton, TitleLabel, theme)
-    MainFrame.BackgroundColor3 = theme.BackgroundColor
-    MainFrame.BackgroundTransparency = theme.Transparency
-    TopBar.BackgroundColor3 = theme.TopBarColor
-    Sidebar.BackgroundColor3 = theme.SidebarColor
-    ContentFrame.BackgroundColor3 = theme.ContentFrameColor
-    CloseButton.BackgroundColor3 = theme.CloseButtonColor
-    MinimizeButton.BackgroundColor3 = theme.MinimizeButtonColor
-    TitleLabel.TextColor3 = theme.TextColor
+-- Function to initialize the library and auto-load configuration if enabled
+function OrionLib:Init()
+    if OrionLib.SaveCfg then
+        pcall(function()
+            if isfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt") then
+                LoadCfg(readfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt"))
+                OrionLib:MakeNotification({
+                    Name = "Configuration",
+                    Content = "Auto-loaded configuration for the game " .. game.GameId .. ".",
+                    Time = 5
+                })
+            end
+        end)
+    end
 end
 
--- Add Dragging Functionality to the Window
-local function AddDraggingFunctionality(DragPoint, Main)
-    pcall(function()
-        local Dragging, DragInput, MousePos, FramePos = false, nil, nil, nil
-        DragPoint.InputBegan:Connect(function(Input)
-            if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-                Dragging = true
-                MousePos = Input.Position
-                FramePos = Main.Position
-                Input.Changed:Connect(function()
-                    if Input.UserInputState == Enum.UserInputState.End then
-                        Dragging = false
-                    end
-                end)
-            end
-        end)
-        DragPoint.InputChanged:Connect(function(Input)
-            if Input.UserInputType == Enum.UserInputType.MouseMovement then
-                DragInput = Input
-            end
-        end)
-        UserInputService.InputChanged:Connect(function(Input)
-            if Input == DragInput and Dragging then
-                local Delta = Input.Position - MousePos
-                TweenService:Create(Main, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                    Position = UDim2.new(FramePos.X.Scale, FramePos.X.Offset + Delta.X, FramePos.Y.Scale, FramePos.Y.Offset + Delta.Y)
-                }):Play()
-            end
-        end)
-    end)
-end
+-- Create window function to initialize UI and settings
+function OrionLib:MakeWindow(WindowConfig)
+    local FirstTab = true
+    local Minimized = false
+    local Loaded = false
+    local UIHidden = false
 
--- Create the Main Window
-function UILibrary:MakeWindow(settings)
-    local ScreenGui = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local TopBar = Instance.new("Frame")
-    local CloseButton = Instance.new("TextButton")
-    local MinimizeButton = Instance.new("TextButton")
-    local Sidebar = Instance.new("Frame")
-    local ContentFrame = Instance.new("Frame")
-    local TitleLabel = Instance.new("TextLabel")
-    local CustomizationTabButton = Instance.new("TextButton")
-    
-    -- ScreenGui
-    ScreenGui.Name = settings.Name or "CustomUILibrary"
-    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    WindowConfig = WindowConfig or {}
+    WindowConfig.Name = WindowConfig.Name or "Orion Library"
+    WindowConfig.ConfigFolder = WindowConfig.ConfigFolder or WindowConfig.Name
+    WindowConfig.SaveConfig = WindowConfig.SaveConfig or false
+    WindowConfig.HidePremium = WindowConfig.HidePremium or false
+    if WindowConfig.IntroEnabled == nil then
+        WindowConfig.IntroEnabled = true
+    end
+    WindowConfig.IntroText = WindowConfig.IntroText or "Orion Library"
+    WindowConfig.CloseCallback = WindowConfig.CloseCallback or function() end
+    WindowConfig.ShowIcon = WindowConfig.ShowIcon or false
+    WindowConfig.Icon = WindowConfig.Icon or "rbxassetid://8834748103"
+    WindowConfig.IntroIcon = WindowConfig.IntroIcon or "rbxassetid://8834748103"
+    OrionLib.Folder = WindowConfig.ConfigFolder
+    OrionLib.SaveCfg = WindowConfig.SaveConfig
 
-    -- MainFrame
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = currentTheme.BackgroundColor
-    MainFrame.BackgroundTransparency = currentTheme.Transparency
-    MainFrame.Size = UDim2.new(0, 600, 0, 400)
-    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
-    MainFrame.BorderSizePixel = 0
-
-    -- TopBar
-    TopBar.Name = "TopBar"
-    TopBar.Parent = MainFrame
-    TopBar.BackgroundColor3 = currentTheme.TopBarColor
-    TopBar.Size = UDim2.new(1, 0, 0, 40)
-
-    -- Close Button
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = TopBar
-    CloseButton.BackgroundColor3 = currentTheme.CloseButtonColor
-    CloseButton.Size = UDim2.new(0, 40, 1, 0)
-    CloseButton.Position = UDim2.new(1, -40, 0, 0)
-    CloseButton.Text = "X"
-    CloseButton.Font = Enum.Font.SourceSansBold
-    CloseButton.TextSize = 16
-    CloseButton.TextColor3 = currentTheme.TextColor
-
-    CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
-    end)
-
-    -- Minimize Button
-    MinimizeButton.Name = "MinimizeButton"
-    MinimizeButton.Parent = TopBar
-    MinimizeButton.BackgroundColor3 = currentTheme.MinimizeButtonColor
-    MinimizeButton.Size = UDim2.new(0, 40, 1, 0)
-    MinimizeButton.Position = UDim2.new(1, -80, 0, 0)
-    MinimizeButton.Text = "-"
-    MinimizeButton.Font = Enum.Font.SourceSansBold
-    MinimizeButton.TextSize = 16
-    MinimizeButton.TextColor3 = currentTheme.TextColor
-
-    MinimizeButton.MouseButton1Click:Connect(function()
-        MainFrame.Visible = not MainFrame.Visible
-    end)
-
-    -- Sidebar
-    Sidebar.Name = "Sidebar"
-    Sidebar.Parent = MainFrame
-    Sidebar.BackgroundColor3 = currentTheme.SidebarColor
-    Sidebar.Size = UDim2.new(0, 150, 1, -40)
-    Sidebar.Position = UDim2.new(0, 0, 0, 40)
-
-    -- Content Frame
-    ContentFrame.Name = "ContentFrame"
-    ContentFrame.Parent = MainFrame
-    ContentFrame.BackgroundColor3 = currentTheme.ContentFrameColor
-    ContentFrame.Size = UDim2.new(1, -150, 1, -40)
-    ContentFrame.Position = UDim2.new(0, 150, 0, 40)
-
-    -- Title Label
-    TitleLabel.Name = "TitleLabel"
-    TitleLabel.Parent = TopBar
-    TitleLabel.BackgroundTransparency = 1
-    TitleLabel.Size = UDim2.new(1, -80, 1, 0)
-    TitleLabel.Font = Enum.Font.SourceSansBold
-    TitleLabel.Text = settings.Name or "UI Library"
-    TitleLabel.TextSize = 20
-    TitleLabel.TextColor3 = currentTheme.TextColor
-    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- Apply theme to UI elements
-    applyTheme(MainFrame, TopBar, Sidebar, ContentFrame, CloseButton, MinimizeButton, TitleLabel, currentTheme)
-
-    -- Make the window draggable
-    AddDraggingFunctionality(TopBar, MainFrame)
-
-    -- Make the Tabs
-    function UILibrary:MakeTab(tabSettings)
-        local Tab = {}
-        local TabButton = Instance.new("TextButton")
-        TabButton.Name = tabSettings.Name
-        TabButton.Parent = Sidebar
-        TabButton.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
-        TabButton.Size = UDim2.new(1, 0, 0, 40)
-        TabButton.Text = tabSettings.Name
-        TabButton.Font = Enum.Font.SourceSans
-        TabButton.TextColor3 = currentTheme.TextColor
-        TabButton.TextSize = 18
-
-        -- When tab is clicked, show its content
-        TabButton.MouseButton1Click:Connect(function()
-            ContentFrame.Visible = true
-        end)
-
-        function Tab:AddSection(sectionSettings)
-            local Section = Instance.new("Frame")
-            Section.Parent = ContentFrame
-            Section.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            Section.Size = UDim2.new(1, 0, 0, 100)
-            Section.Position = UDim2.new(0, 0, 0, 0)
-
-            local SectionTitle = Instance.new("TextLabel")
-            SectionTitle.Parent = Section
-            SectionTitle.Text = sectionSettings.Name
-            SectionTitle.Size = UDim2.new(1, 0, 0, 30)
-            SectionTitle.TextColor3 = currentTheme.TextColor
-            SectionTitle.BackgroundTransparency = 1
-            SectionTitle.Font = Enum.Font.SourceSans
-            SectionTitle.TextSize = 16
-
-            -- Adding button, toggle, slider to the section later
+    if WindowConfig.SaveConfig then
+        if not isfolder(WindowConfig.ConfigFolder) then
+            makefolder(WindowConfig.ConfigFolder)
         end
-
-        return Tab
     end
 
-    -- MakeNotification Function
-    function UILibrary:MakeNotification(notificationSettings)
-        local NotificationFrame = Instance.new("Frame")
-        local TitleLabel = Instance.new("TextLabel")
-        local ContentLabel = Instance.new("TextLabel")
-        local ImageLabel = Instance.new("ImageLabel")
-        local CloseButton = Instance.new("TextButton")
-        
-        -- Setup Frame
-        NotificationFrame.Parent = ScreenGui
-        NotificationFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        NotificationFrame.BackgroundTransparency = 0.5
-        NotificationFrame.Size = UDim2.new(0, 300, 0, 150)
-        NotificationFrame.Position = UDim2.new(0.5, -150, 0.8, 0)
-        NotificationFrame.BorderSizePixel = 0
+    -- Create tab holder
+    local TabHolder = self:CreateScrollFrame({
+        Size = UDim2.new(1, 0, 1, -50),
+        Padding = 8
+    })
 
-        -- Title
-        TitleLabel.Parent = NotificationFrame
-        TitleLabel.Text = notificationSettings.Name or "Notification"
-        TitleLabel.Size = UDim2.new(1, 0, 0, 30)
-        TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        TitleLabel.BackgroundTransparency = 1
-        TitleLabel.Font = Enum.Font.SourceSansBold
-        TitleLabel.TextSize = 18
+    -- Add connections
+    AddConnection(TabHolder.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
+        TabHolder.CanvasSize = UDim2.new(0, 0, 0, TabHolder.UIListLayout.AbsoluteContentSize.Y + 16)
+    end)
 
-        -- Content
-        ContentLabel.Parent = NotificationFrame
-        ContentLabel.Text = notificationSettings.Content or "No Content"
-        ContentLabel.Size = UDim2.new(1, 0, 0, 60)
-        ContentLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        ContentLabel.BackgroundTransparency = 1
-        ContentLabel.Font = Enum.Font.SourceSans
-        ContentLabel.TextSize = 14
+    -- Create Close and Minimize buttons
+    local CloseBtn = self:CreateButton({
+        Size = UDim2.new(0.5, 0, 1, 0),
+        Icon = "rbxassetid://7072725342",
+        Position = UDim2.new(0.5, 0, 0, 0)
+    })
 
-        -- Image
-        ImageLabel.Parent = NotificationFrame
-        ImageLabel.Image = notificationSettings.Image or "rbxassetid://4483345998"
-        ImageLabel.Size = UDim2.new(0, 50, 0, 50)
-        ImageLabel.Position = UDim2.new(0, 10, 0, 50)
+    local MinimizeBtn = self:CreateButton({
+        Size = UDim2.new(0.5, 0, 1, 0),
+        Icon = "rbxassetid://7072719338",
+        Position = UDim2.new(0, 0, 0, 0)
+    })
 
-        -- Close button
-        CloseButton.Parent = NotificationFrame
-        CloseButton.Text = "X"
-        CloseButton.Size = UDim2.new(0, 40, 0, 40)
-        CloseButton.Position = UDim2.new(1, -40, 0, 0)
-        CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        CloseButton.Font = Enum.Font.SourceSansBold
-        CloseButton.TextSize = 18
+    -- Create the draggable window frame
+    local DragPoint = self:CreateTFrame({
+        Size = UDim2.new(1, 0, 0, 50)
+    })
 
-        -- Close Button Logic
-        CloseButton.MouseButton1Click:Connect(function()
-            NotificationFrame:Destroy()
-        end)
+    local WindowStuff = self:CreateWindowStuff({
+        TabHolder = TabHolder,
+        CloseBtn = CloseBtn,
+        MinimizeBtn = MinimizeBtn
+    })
 
-        -- Auto-close after a certain time
-        delay(notificationSettings.Time or 5, function()
-            NotificationFrame:Destroy()
-        end)
-    end
-
-    return UILibrary
+    -- Window name label
+    local WindowName = self:CreateLabel({
+        Text = WindowConfig.Name,
+        Position = UDim2.new(0, 25, 0, -24),
+        Font = Enum.Font.GothamBlack,
+        TextSize = 20
+    })
 end
 
-return UILibrary
+-- Notification System to show messages
+function OrionLib:MakeNotification(NotificationConfig)
+    spawn(function()
+        NotificationConfig.Name = NotificationConfig.Name or "Notification"
+        NotificationConfig.Content = NotificationConfig.Content or "Test"
+        NotificationConfig.Image = NotificationConfig.Image or "rbxassetid://4384403532"
+        NotificationConfig.Time = NotificationConfig.Time or 15
+
+        local NotificationParent = Instance.new("Frame", OrionLib.NotificationHolder)
+        NotificationParent.Size = UDim2.new(1, 0, 0, 0)
+        NotificationParent.BackgroundTransparency = 1
+        NotificationParent.AutomaticSize = Enum.AutomaticSize.Y
+        NotificationParent.Name = "NotificationParent"
+
+        local NotificationFrame = Instance.new("Frame", NotificationParent)
+        NotificationFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        NotificationFrame.Size = UDim2.new(1, 0, 0, 0)
+        NotificationFrame.Position = UDim2.new(1, -55, 0, 0)
+        NotificationFrame.BackgroundTransparency = 0
+        NotificationFrame.AutomaticSize = Enum.AutomaticSize.Y
+
+        local Stroke = Instance.new("UIStroke", NotificationFrame)
+        Stroke.Color = Color3.fromRGB(93, 93, 93)
+        Stroke.Thickness = 1.2
+
+        local Padding = Instance.new("UIPadding", NotificationFrame)
+        Padding.PaddingBottom = UDim.new(0, 12)
+        Padding.PaddingLeft = UDim.new(0, 12)
+        Padding.PaddingRight = UDim.new(0, 12)
+        Padding.PaddingTop = UDim.new(0, 12)
+
+        local Icon = Instance.new("ImageLabel", NotificationFrame)
+        Icon.Size = UDim2.new(0, 20, 0, 20)
+        Icon.Image = NotificationConfig.Image
+        Icon.ImageColor3 = Color3.fromRGB(240, 240, 240)
+        Icon.Position = UDim2.new(0, 0, 0, 0)
+        Icon.Name = "Icon"
+
+        local Title = Instance.new("TextLabel", NotificationFrame)
+        Title.Text = NotificationConfig.Name
+        Title.Size = UDim2.new(1, -30, 0, 20)
+        Title.Position = UDim2.new(0, 30, 0, 0)
+        Title.Font = Enum.Font.GothamBold
+        Title.Name = "Title"
+
+        local Content = Instance.new("TextLabel", NotificationFrame)
+        Content.Text = NotificationConfig.Content
+        Content.Size = UDim2.new(1, 0, 0, 0)
+        Content.Position = UDim2.new(0, 0, 0, 25)
+        Content.Font = Enum.Font.GothamSemibold
+        Content.Name = "Content"
+        Content.AutomaticSize = Enum.AutomaticSize.Y
+        Content.TextColor3 = Color3.fromRGB(200, 200, 200)
+        Content.TextWrapped = true
+
+        local TweenService = game:GetService("TweenService")
+        TweenService:Create(NotificationFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = UDim2.new(0, 0, 0, 0)}):Play()
+
+        wait(NotificationConfig.Time - 0.88)
+        TweenService:Create(Icon, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
+        TweenService:Create(NotificationFrame, TweenInfo.new(0.8, Enum.EasingStyle.Quint), {BackgroundTransparency = 0.6}):Play()
+        wait(0.3)
+        TweenService:Create(Stroke, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {Transparency = 0.9}):Play()
+        TweenService:Create(Title, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.4}):Play()
+        TweenService:Create(Content, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {TextTransparency = 0.5}):Play()
+        wait(0.05)
+
+        NotificationFrame:TweenPosition(UDim2.new(1, 20, 0, 0), 'In', 'Quint', 0.8, true)
+        wait(1.35)
+        NotificationFrame:Destroy()
+    end)
+end
+
+-- Helper Functions
+function OrionLib:CreateScrollFrame(Config)
+    -- Add scroll frame functionality here
+end
+
+function OrionLib:CreateButton(Config)
+    -- Create a button element here
+end
+
+function OrionLib:CreateTFrame(Config)
+    -- Create a draggable frame here
+end
+
+function OrionLib:CreateWindowStuff(Config)
+    -- Set window elements and arrange them
+end
+
+function OrionLib:CreateLabel(Config)
+    -- Create and return a label element here
+end
+
+return OrionLib
