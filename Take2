@@ -1,62 +1,55 @@
--- Optimized KLibrary UI Core
-
-local game = game
-local GetService = game.GetService
-
-cloneref = cloneref or function(v) return v end
-isfile = isfile or function() return true end
-isfolder = isfolder or function() return true end
-
-local Services = setmetatable({}, {
-    __index = function(_, service)
-        local s = game:GetService(service)
-        rawset(Services, service, s)
-        return s
-    end
-})
-
-local UIS = Services.UserInputService
-local TS = Services.TweenService
-local RS = Services.RunService
-local Players = Services.Players
-local HTTP = Services.HttpService
-local InsertService = Services.InsertService
-local TextChatService = Services.TextChatService
-
-local LocalPlayer = Players.LocalPlayer
+-- // Orion Library - Take 2
+-- // This is not the real one, as there is no original because it's owner has sadly deleted it..
+-- // If you are the original owner please message me if you would like me to terminate this: @re_sistance on discord
+-- // I hope you enjoy.
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = game:GetService("Players").LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-
-local IsOnMobile = table.find({ Enum.Platform.IOS, Enum.Platform.Android }, UIS:GetPlatform())
-local IsOnEmulator = IsOnMobile and UIS.KeyboardEnabled
-
-local Profile = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-local BubbleChatConfiguration = TextChatService.BubbleChatConfiguration
-
-local CoreGui = cloneref(Services.CoreGui)
-if RS:IsStudio() then CoreGui = LocalPlayer:WaitForChild("PlayerGui") end
-
-local KInterface = {
+local HttpService = game:GetService("HttpService")
+local OrionLib = {
     Elements = {},
     ThemeObjects = {},
     Connections = {},
     Flags = {},
     Themes = {
         Default = {
-			TextColor = Color3.fromRGB(240, 240, 240),
-			MainColor = Color3.fromRGB(16, 16, 16),
-			SecondaryColor = Color3.fromRGB(22, 22, 22),
-			NotificationActionsBackground = Color3.fromRGB(230, 230, 230),
-			ImageColor = Color3.fromRGB(255, 255, 255),
-			TabBackground = Color3.fromRGB(80, 80, 80),
-			TabStroke = Color3.fromRGB(85, 85, 85),
-			TabBackgroundSelected = Color3.fromRGB(210, 210, 210),
-			TabTextColor = Color3.fromRGB(240, 240, 240),
-			SelectedTabTextColor = Color3.fromRGB(50, 50, 50),
-			SliderColor = Color3.fromRGB(255, 255, 255),
-			ToggleEnabled = Color3.fromRGB(255, 255, 255),
-			ToggleDisabled = Color3.fromRGB(139, 139, 139),
-			CardButton = Color3.fromRGB(230, 230, 230),
-			TweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quint)
+            -- Background Colors
+            Main = Color3.fromRGB(25, 25, 25), -- Dark base color
+            Secondary = Color3.fromRGB(32, 32, 32), -- Slightly lighter background
+            MainColor = Color3.fromRGB(16, 16, 16), -- Darker variant for specific areas
+            SecondaryColor = Color3.fromRGB(22, 22, 22), -- Even darker variant for contrast
+
+            -- Text Colors
+            Text = Color3.fromRGB(240, 240, 240), -- Light text for readability
+            TextDark = Color3.fromRGB(150, 150, 150), -- Slightly muted gray for less emphasis
+            TextColor = Color3.fromRGB(240, 240, 240), -- Similar to Text for consistency
+
+            -- Stroke / Divider
+            Stroke = Color3.fromRGB(60, 60, 60), -- Light gray for borders or strokes
+            Divider = Color3.fromRGB(60, 60, 60), -- Same as Stroke for visual consistency
+
+            -- Tab Styling
+            TabBackground = Color3.fromRGB(80, 80, 80), -- Dark gray for inactive tab
+            TabStroke = Color3.fromRGB(85, 85, 85), -- Slightly lighter gray for tab borders
+            TabBackgroundSelected = Color3.fromRGB(210, 210, 210), -- Highlighted tab background
+            TabTextColor = Color3.fromRGB(240, 240, 240), -- Text color for tab labels
+            SelectedTabTextColor = Color3.fromRGB(50, 50, 50), -- Text color for selected tab
+
+            -- Controls and UI States
+            SliderColor = Color3.fromRGB(255, 255, 255), -- White for sliders
+            ToggleEnabled = Color3.fromRGB(255, 255, 255), -- White for enabled toggle
+            ToggleDisabled = Color3.fromRGB(139, 139, 139), -- Dimmed gray for disabled toggle
+            CardButton = Color3.fromRGB(230, 230, 230), -- Light gray button color for cards
+            NotificationActionsBackground = Color3.fromRGB(230, 230, 230), -- Light gray background for notifications
+
+            -- Image Color
+            ImageColor = Color3.fromRGB(255, 255, 255), -- White for image icons
+
+            -- Tweening Info
+            TweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quint) -- Smooth tween transition
+
         }
     },
     SelectedTheme = "Default",
@@ -64,109 +57,73 @@ local KInterface = {
     SaveCfg = false
 }
 
+
+--Feather Icons https://github.com/evoincorp/lucideblox/tree/master/src/modules/util - Created by 7kayoh
 local Icons = {}
-local success, result = pcall(function()
-    local json = game:HttpGet("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")
-    Icons = HTTP:JSONDecode(json).icons
+
+local Success, Response = pcall(function()
+	Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
 end)
 
-if not success then
-    warn("\n - Failed to load Feather Icons. Error code: " .. tostring(result) .. "\n")
-end
+if not Success then
+	warn("\n - Failed to load Feather Icons. Error code: " .. Response .. "\n")
+end	
 
-local function GetIcon(name)
-    return Icons[name] or nil
-end
+local function GetIcon(IconName)
+	if Icons[IconName] ~= nil then
+		return Icons[IconName]
+	else
+		return nil
+	end
+end   
 
-local GUI = Instance.new("ScreenGui")
-GUI.Name = "KInt"
-
+local Orion = Instance.new("ScreenGui")
+Orion.Name = "Orion"
 if syn then
-    syn.protect_gui(GUI)
-    GUI.Parent = CoreGui
+	syn.protect_gui(Orion)
+	Orion.Parent = game.CoreGui
 else
-    GUI.Parent = gethui() or CoreGui
-end
-
-local function CleanupDuplicates()
-    local parent = gethui and gethui() or CoreGui
-    for _, gui in ipairs(parent:GetChildren()) do
-        if gui:IsA("ScreenGui") and gui.Name == GUI.Name and gui ~= GUI then
-            gui:Destroy()
-        end
-    end
-end
-
-CleanupDuplicates()
-
-function KInterface:IsRunning()
-    local parent = gethui and gethui() or CoreGui
-    return GUI.Parent == parent
-end
-
-function KInterface:Init()
-    if not self.SaveCfg then return end
-
-    pcall(function()
-        local cfgPath = string.format("%s/%d.txt", self.Folder, game.GameId)
-        if isfile(cfgPath) then
-            LoadCfg(readfile(cfgPath))
-            self:MakeNotification({
-                Name = "Configuration",
-                Content = "Auto-loaded configuration for the game " .. game.GameId .. ".",
-                Time = 5
-            })
-        end
-    end)
-end
-
-local KInt = Instance.new("ScreenGui")
-KInt.Name = "KInt"
-if syn then
-	syn.protect_gui(KInt)
-	KInt.Parent = game.CoreGui
-else
-	KInt.Parent = gethui() or game.CoreGui
+	Orion.Parent = gethui() or game.CoreGui
 end
 
 if gethui then
 	for _, Interface in ipairs(gethui():GetChildren()) do
-		if Interface.Name == KInt.Name and Interface ~= KInt then
+		if Interface.Name == Orion.Name and Interface ~= Orion then
 			Interface:Destroy()
 		end
 	end
 else
 	for _, Interface in ipairs(game.CoreGui:GetChildren()) do
-		if Interface.Name == KInt.Name and Interface ~= KInt then
+		if Interface.Name == Orion.Name and Interface ~= Orion then
 			Interface:Destroy()
 		end
 	end
 end
 
-function KInterface:IsRunning()
+function OrionLib:IsRunning()
 	if gethui then
-		return KInt.Parent == gethui()
+		return Orion.Parent == gethui()
 	else
-		return KInt.Parent == game:GetService("CoreGui")
+		return Orion.Parent == game:GetService("CoreGui")
 	end
 
 end
 
 local function AddConnection(Signal, Function)
-	if (not KInterface:IsRunning()) then
+	if (not OrionLib:IsRunning()) then
 		return
 	end
 	local SignalConnect = Signal:Connect(Function)
-	table.insert(KInterface.Connections, SignalConnect)
+	table.insert(OrionLib.Connections, SignalConnect)
 	return SignalConnect
 end
 
 task.spawn(function()
-	while (KInterface:IsRunning()) do
+	while (OrionLib:IsRunning()) do
 		wait()
 	end
 
-	for _, Connection in next, KInterface.Connections do
+	for _, Connection in next, OrionLib.Connections do
 		Connection:Disconnect()
 	end
 end)
@@ -214,13 +171,13 @@ local function Create(Name, Properties, Children)
 end
 
 local function CreateElement(ElementName, ElementFunction)
-	KInterface.Elements[ElementName] = function(...)
+	OrionLib.Elements[ElementName] = function(...)
 		return ElementFunction(...)
 	end
 end
 
 local function MakeElement(ElementName, ...)
-	local NewElement = KInterface.Elements[ElementName](...)
+	local NewElement = OrionLib.Elements[ElementName](...)
 	return NewElement
 end
 
@@ -263,18 +220,18 @@ local function ReturnProperty(Object)
 end
 
 local function AddThemeObject(Object, Type)
-	if not KInterface.ThemeObjects[Type] then
-		KInterface.ThemeObjects[Type] = {}
+	if not OrionLib.ThemeObjects[Type] then
+		OrionLib.ThemeObjects[Type] = {}
 	end    
-	table.insert(KInterface.ThemeObjects[Type], Object)
-	Object[ReturnProperty(Object)] = KInterface.Themes[KInterface.SelectedTheme][Type]
+	table.insert(OrionLib.ThemeObjects[Type], Object)
+	Object[ReturnProperty(Object)] = OrionLib.Themes[OrionLib.SelectedTheme][Type]
 	return Object
 end    
 
 local function SetTheme()
-	for Name, Type in pairs(KInterface.ThemeObjects) do
+	for Name, Type in pairs(OrionLib.ThemeObjects) do
 		for _, Object in pairs(Type) do
-			Object[ReturnProperty(Object)] = KInterface.Themes[KInterface.SelectedTheme][Name]
+			Object[ReturnProperty(Object)] = OrionLib.Themes[OrionLib.SelectedTheme][Name]
 		end    
 	end    
 end
@@ -290,12 +247,12 @@ end
 local function LoadCfg(Config)
 	local Data = HttpService:JSONDecode(Config)
 	table.foreach(Data, function(a,b)
-		if KInterface.Flags[a] then
+		if OrionLib.Flags[a] then
 			spawn(function() 
-				if KInterface.Flags[a].Type == "Colorpicker" then
-					KInterface.Flags[a]:Set(UnpackColor(b))
+				if OrionLib.Flags[a].Type == "Colorpicker" then
+					OrionLib.Flags[a]:Set(UnpackColor(b))
 				else
-					KInterface.Flags[a]:Set(b)
+					OrionLib.Flags[a]:Set(b)
 				end    
 			end)
 		else
@@ -306,7 +263,7 @@ end
 
 local function SaveCfg(Name)
 	local Data = {}
-	for i,v in pairs(KInterface.Flags) do
+	for i,v in pairs(OrionLib.Flags) do
 		if v.Save then
 			if v.Type == "Colorpicker" then
 				Data[i] = PackColor(v.Value)
@@ -315,7 +272,7 @@ local function SaveCfg(Name)
 			end
 		end	
 	end
-	writefile(KInterface.Folder .. "/" .. Name .. ".txt", tostring(HttpService:JSONEncode(Data)))
+	writefile(OrionLib.Folder .. "/" .. Name .. ".txt", tostring(HttpService:JSONEncode(Data)))
 end
 
 local WhitelistedMouse = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2,Enum.UserInputType.MouseButton3}
@@ -459,10 +416,10 @@ local NotificationHolder = SetProps(SetChildren(MakeElement("TFrame"), {
 	Position = UDim2.new(1, -25, 1, -25),
 	Size = UDim2.new(0, 300, 1, -25),
 	AnchorPoint = Vector2.new(1, 1),
-	Parent = KInt
+	Parent = Orion
 })
 
-function KInterface:MakeNotification(NotificationConfig)
+function OrionLib:MakeNotification(NotificationConfig)
 	spawn(function()
 		NotificationConfig.Name = NotificationConfig.Name or "Notification"
 		NotificationConfig.Content = NotificationConfig.Content or "Test"
@@ -523,12 +480,12 @@ function KInterface:MakeNotification(NotificationConfig)
 	end)
 end    
 
-function KInterface:Init()
-	if KInterface.SaveCfg then	
+function OrionLib:Init()
+	if OrionLib.SaveCfg then	
 		pcall(function()
-			if isfile(KInterface.Folder .. "/" .. game.GameId .. ".txt") then
-				LoadCfg(readfile(KInterface.Folder .. "/" .. game.GameId .. ".txt"))
-				KInterface:MakeNotification({
+			if isfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt") then
+				LoadCfg(readfile(OrionLib.Folder .. "/" .. game.GameId .. ".txt"))
+				OrionLib:MakeNotification({
 					Name = "Configuration",
 					Content = "Auto-loaded configuration for the game " .. game.GameId .. ".",
 					Time = 5
@@ -538,7 +495,7 @@ function KInterface:Init()
 	end	
 end	
 
-function KInterface:MakeWindow(WindowConfig)
+function OrionLib:MakeWindow(WindowConfig)
 	local FirstTab = true
 	local Minimized = false
 	local Loaded = false
@@ -557,8 +514,8 @@ function KInterface:MakeWindow(WindowConfig)
 	WindowConfig.ShowIcon = WindowConfig.ShowIcon or false
 	WindowConfig.Icon = WindowConfig.Icon or "rbxassetid://8834748103"
 	WindowConfig.IntroIcon = WindowConfig.IntroIcon or "rbxassetid://8834748103"
-	KInterface.Folder = WindowConfig.ConfigFolder
-	KInterface.SaveCfg = WindowConfig.SaveConfig
+	OrionLib.Folder = WindowConfig.ConfigFolder
+	OrionLib.SaveCfg = WindowConfig.SaveConfig
 
 	if WindowConfig.SaveConfig then
 		if not isfolder(WindowConfig.ConfigFolder) then
@@ -571,7 +528,7 @@ function KInterface:MakeWindow(WindowConfig)
 	}), {
 		MakeElement("List"),
 		MakeElement("Padding", 8, 0, 0, 8)
-	}), "Tabstroke")
+	}), "Divider")
 
 	AddConnection(TabHolder.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
 		TabHolder.CanvasSize = UDim2.new(0, 0, 0, TabHolder.UIListLayout.AbsoluteContentSize.Y + 16)
@@ -639,7 +596,7 @@ function KInterface:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, 0, 1, 0),
 				}), "Second"),
 				MakeElement("Corner", 1)
-			}), "Tabstroke"),
+			}), "Divider"),
 			SetChildren(SetProps(MakeElement("TFrame"), {
 				AnchorPoint = Vector2.new(0, 0.5),
 				Size = UDim2.new(0, 32, 0, 32),
@@ -658,7 +615,7 @@ function KInterface:MakeWindow(WindowConfig)
 				Size = UDim2.new(1, -60, 0, 12),
 				Position = UDim2.new(0, 50, 1, -25),
 				Visible = not WindowConfig.HidePremium
-			}), "TextColor")
+			}), "TextDark")
 		}),
 	}), "Second")
 
@@ -675,7 +632,7 @@ function KInterface:MakeWindow(WindowConfig)
 	}), "Stroke")
 
 	local MainWindow = AddThemeObject(SetChildren(SetProps(MakeElement("RoundFrame", Color3.fromRGB(255, 255, 255), 0, 10), {
-		Parent = KInt,
+		Parent = Orion,
 		Position = UDim2.new(0.5, -307, 0.5, -172),
 		Size = UDim2.new(0, 615, 0, 344),
 		ClipsDescendants = true
@@ -724,7 +681,7 @@ function KInterface:MakeWindow(WindowConfig)
 	AddConnection(CloseBtn.MouseButton1Up, function()
 		MainWindow.Visible = false
 		UIHidden = true
-		KInterface:MakeNotification({
+		OrionLib:MakeNotification({
 			Name = "Interface Hidden",
 			Content = "Tap RightShift to reopen the interface",
 			Time = 5
@@ -761,7 +718,7 @@ function KInterface:MakeWindow(WindowConfig)
 	local function LoadSequence()
 		MainWindow.Visible = false
 		local LoadSequenceLogo = SetProps(MakeElement("Image", WindowConfig.IntroIcon), {
-			Parent = KInt,
+			Parent = Orion,
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = UDim2.new(0.5, 0, 0.4, 0),
 			Size = UDim2.new(0, 28, 0, 28),
@@ -770,7 +727,7 @@ function KInterface:MakeWindow(WindowConfig)
 		})
 
 		local LoadSequenceText = SetProps(MakeElement("Label", WindowConfig.IntroText, 14), {
-			Parent = KInt,
+			Parent = Orion,
 			Size = UDim2.new(1, 0, 1, 0),
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = UDim2.new(0.5, 19, 0.5, 0),
@@ -835,7 +792,7 @@ function KInterface:MakeWindow(WindowConfig)
 		}), {
 			MakeElement("List", 0, 6),
 			MakeElement("Padding", 15, 10, 10, 15)
-		}), "Tabstroke")
+		}), "Divider")
 
 		AddConnection(Container.UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"), function()
 			Container.CanvasSize = UDim2.new(0, 0, 0, Container.UIListLayout.AbsoluteContentSize.Y + 30)
@@ -912,7 +869,7 @@ function KInterface:MakeWindow(WindowConfig)
 						Font = Enum.Font.GothamSemibold,
 						Name = "Content",
 						TextWrapped = true
-					}), "TextColor"),
+					}), "TextDark"),
 					AddThemeObject(MakeElement("Stroke"), "Stroke")
 				}), "Second")
 
@@ -954,28 +911,28 @@ function KInterface:MakeWindow(WindowConfig)
 					AddThemeObject(SetProps(MakeElement("Image", ButtonConfig.Icon), {
 						Size = UDim2.new(0, 20, 0, 20),
 						Position = UDim2.new(1, -30, 0, 7),
-					}), "TextColor"),
+					}), "TextDark"),
 					AddThemeObject(MakeElement("Stroke"), "Stroke"),
 					Click
 				}), "Second")
 
 				AddConnection(Click.MouseEnter, function()
-					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 3)}):Play()
+					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 				end)
 
 				AddConnection(Click.MouseLeave, function()
-					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = KInterface.Themes[KInterface.SelectedTheme].Second}):Play()
+					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
 				end)
 
 				AddConnection(Click.MouseButton1Up, function()
-					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 3)}):Play()
+					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 					spawn(function()
 						ButtonConfig.Callback()
 					end)
 				end)
 
 				AddConnection(Click.MouseButton1Down, function()
-					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 6, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 6, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 6)}):Play()
+					TweenService:Create(ButtonFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
 				end)
 
 				function Button:Set(ButtonText)
@@ -1035,8 +992,8 @@ function KInterface:MakeWindow(WindowConfig)
 
 				function Toggle:Set(Value)
 					Toggle.Value = Value
-					TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or KInterface.Themes.Default.Tabstroke}):Play()
-					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or KInterface.Themes.Default.Stroke}):Play()
+					TweenService:Create(ToggleBox, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Toggle.Value and ToggleConfig.Color or OrionLib.Themes.Default.Divider}):Play()
+					TweenService:Create(ToggleBox.Stroke, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Color = Toggle.Value and ToggleConfig.Color or OrionLib.Themes.Default.Stroke}):Play()
 					TweenService:Create(ToggleBox.Ico, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {ImageTransparency = Toggle.Value and 0 or 1, Size = Toggle.Value and UDim2.new(0, 20, 0, 20) or UDim2.new(0, 8, 0, 8)}):Play()
 					ToggleConfig.Callback(Toggle.Value)
 				end    
@@ -1044,25 +1001,25 @@ function KInterface:MakeWindow(WindowConfig)
 				Toggle:Set(Toggle.Value)
 
 				AddConnection(Click.MouseEnter, function()
-					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 3)}):Play()
+					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 				end)
 
 				AddConnection(Click.MouseLeave, function()
-					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = KInterface.Themes[KInterface.SelectedTheme].Second}):Play()
+					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
 				end)
 
 				AddConnection(Click.MouseButton1Up, function()
-					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 3)}):Play()
+					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 					SaveCfg(game.GameId)
 					Toggle:Set(not Toggle.Value)
 				end)
 
 				AddConnection(Click.MouseButton1Down, function()
-					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 6, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 6, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 6)}):Play()
+					TweenService:Create(ToggleFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
 				end)
 
 				if ToggleConfig.Flag then
-					KInterface.Flags[ToggleConfig.Flag] = Toggle
+					OrionLib.Flags[ToggleConfig.Flag] = Toggle
 				end	
 				return Toggle
 			end  
@@ -1157,7 +1114,7 @@ function KInterface:MakeWindow(WindowConfig)
 
 				Slider:Set(Slider.Value)
 				if SliderConfig.Flag then				
-					KInterface.Flags[SliderConfig.Flag] = Slider
+					OrionLib.Flags[SliderConfig.Flag] = Slider
 				end
 				return Slider
 			end  
@@ -1186,7 +1143,7 @@ function KInterface:MakeWindow(WindowConfig)
 					Position = UDim2.new(0, 0, 0, 38),
 					Size = UDim2.new(1, 0, 1, -38),
 					ClipsDescendants = true
-				}), "Tabstroke")
+				}), "Divider")
 
 				local Click = SetProps(MakeElement("Button"), {
 					Size = UDim2.new(1, 0, 1, 0)
@@ -1211,13 +1168,13 @@ function KInterface:MakeWindow(WindowConfig)
 							Position = UDim2.new(1, -30, 0.5, 0),
 							ImageColor3 = Color3.fromRGB(240, 240, 240),
 							Name = "Ico"
-						}), "TextColor"),
+						}), "TextDark"),
 						AddThemeObject(SetProps(MakeElement("Label", "Selected", 13), {
 							Size = UDim2.new(1, -40, 1, 0),
 							Font = Enum.Font.Gotham,
 							Name = "Selected",
 							TextXAlignment = Enum.TextXAlignment.Right
-						}), "TextColor"),
+						}), "TextDark"),
 						AddThemeObject(SetProps(MakeElement("Frame"), {
 							Size = UDim2.new(1, 0, 0, 1),
 							Position = UDim2.new(0, 0, 1, -1),
@@ -1252,7 +1209,7 @@ function KInterface:MakeWindow(WindowConfig)
 							Size = UDim2.new(1, 0, 0, 28),
 							BackgroundTransparency = 1,
 							ClipsDescendants = true
-						}), "Tabstroke")
+						}), "Divider")
 
 						AddConnection(OptionBtn.MouseButton1Click, function()
 							Dropdown:Set(Option)
@@ -1312,7 +1269,7 @@ function KInterface:MakeWindow(WindowConfig)
 				Dropdown:Refresh(Dropdown.Options, false)
 				Dropdown:Set(Dropdown.Value)
 				if DropdownConfig.Flag then				
-					KInterface.Flags[DropdownConfig.Flag] = Dropdown
+					OrionLib.Flags[DropdownConfig.Flag] = Dropdown
 				end
 				return Dropdown
 			end
@@ -1410,19 +1367,19 @@ function KInterface:MakeWindow(WindowConfig)
 				end)
 
 				AddConnection(Click.MouseEnter, function()
-					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 3)}):Play()
+					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 				end)
 
 				AddConnection(Click.MouseLeave, function()
-					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = KInterface.Themes[KInterface.SelectedTheme].Second}):Play()
+					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
 				end)
 
 				AddConnection(Click.MouseButton1Up, function()
-					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 3)}):Play()
+					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 				end)
 
 				AddConnection(Click.MouseButton1Down, function()
-					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 6, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 6, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 6)}):Play()
+					TweenService:Create(BindFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
 				end)
 
 				function Bind:Set(Key)
@@ -1434,7 +1391,7 @@ function KInterface:MakeWindow(WindowConfig)
 
 				Bind:Set(BindConfig.Default)
 				if BindConfig.Flag then				
-					KInterface.Flags[BindConfig.Flag] = Bind
+					OrionLib.Flags[BindConfig.Flag] = Bind
 				end
 				return Bind
 			end  
@@ -1501,20 +1458,20 @@ function KInterface:MakeWindow(WindowConfig)
 				TextboxActual.Text = TextboxConfig.Default
 
 				AddConnection(Click.MouseEnter, function()
-					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 3)}):Play()
+					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 				end)
 
 				AddConnection(Click.MouseLeave, function()
-					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = KInterface.Themes[KInterface.SelectedTheme].Second}):Play()
+					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = OrionLib.Themes[OrionLib.SelectedTheme].Second}):Play()
 				end)
 
 				AddConnection(Click.MouseButton1Up, function()
-					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 3, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 3)}):Play()
+					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 3, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 3)}):Play()
 					TextboxActual:CaptureFocus()
 				end)
 
 				AddConnection(Click.MouseButton1Down, function()
-					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(KInterface.Themes[KInterface.SelectedTheme].Second.R * 255 + 6, KInterface.Themes[KInterface.SelectedTheme].Second.G * 255 + 6, KInterface.Themes[KInterface.SelectedTheme].Second.B * 255 + 6)}):Play()
+					TweenService:Create(TextboxFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {BackgroundColor3 = Color3.fromRGB(OrionLib.Themes[OrionLib.SelectedTheme].Second.R * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.G * 255 + 6, OrionLib.Themes[OrionLib.SelectedTheme].Second.B * 255 + 6)}):Play()
 				end)
 			end 
 			function ElementFunction:AddColorpicker(ColorpickerConfig)
@@ -1698,7 +1655,7 @@ function KInterface:MakeWindow(WindowConfig)
 
 				Colorpicker:Set(Colorpicker.Value)
 				if ColorpickerConfig.Flag then				
-					KInterface.Flags[ColorpickerConfig.Flag] = Colorpicker
+					OrionLib.Flags[ColorpickerConfig.Flag] = Colorpicker
 				end
 				return Colorpicker
 			end  
@@ -1718,7 +1675,7 @@ function KInterface:MakeWindow(WindowConfig)
 					Size = UDim2.new(1, -12, 0, 16),
 					Position = UDim2.new(0, 0, 0, 3),
 					Font = Enum.Font.GothamSemibold
-				}), "TextColor"),
+				}), "TextDark"),
 				SetChildren(SetProps(MakeElement("TFrame"), {
 					AnchorPoint = Vector2.new(0, 0),
 					Size = UDim2.new(1, 0, 1, -24),
@@ -1803,7 +1760,7 @@ function KInterface:MakeWindow(WindowConfig)
 	--				})
 	--			})
 	--		end
-	--		KInterface:MakeNotification({
+	--		OrionLib:MakeNotification({
 	--			Name = "UI Library Available",
 	--			Content = "New UI Library Available - Joining Discord (#announcements)",
 	--			Time = 8
@@ -1833,8 +1790,8 @@ function KInterface:MakeWindow(WindowConfig)
 	return TabFunction
 end   
 
-function KInterface:Destroy()
-	KInt:Destroy()
+function OrionLib:Destroy()
+	Orion:Destroy()
 end
 
-return KInterface
+return OrionLib
