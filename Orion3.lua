@@ -1,12 +1,22 @@
 --[[ THIS SCRIPT WAS NOT MADE BY ME THE ORIGINAL WAS DELETED BY THE OWNER ]]
 --[[ REMADE FOR BETTER USE ]]
 
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local LocalPlayer = game:GetService("Players").LocalPlayer
+local function SafeGetService(name)
+    local Service = (game.GetService)
+    local Reference = (cloneref) or function(reference)
+        return reference
+    end
+    return Reference(Service(game, name))
+end
+
+local SoundService = SafeGetService("SoundService")
+local UserInputService = SafeGetService("UserInputService")
+local TweenService = SafeGetService("TweenService")
+local RunService = SafeGetService("RunService")
+local Players = SafeGetService("Players")
+local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-local HttpService = game:GetService("HttpService")
+local HttpService = SafeGetService("HttpService")
 
 local OrionLib = {
 	Elements = {},
@@ -32,7 +42,7 @@ local OrionLib = {
 local Icons = {}
 
 local Success, Response = pcall(function()
-	Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/evoincorp/lucideblox/master/src/modules/util/icons.json")).icons
+	Icons = HttpService:JSONDecode(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua")).icons
 end)
 
 if not Success then
