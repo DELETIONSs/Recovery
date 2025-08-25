@@ -8,7 +8,7 @@ local function SafeGetService(name)
     end
     return Reference(Service(game, name))
 end
-
+local CoreGui = SafeGetService("CoreGui")
 local SoundService = SafeGetService("SoundService")
 local UserInputService = SafeGetService("UserInputService")
 local TweenService = SafeGetService("TweenService")
@@ -61,9 +61,9 @@ local Orion = Instance.new("ScreenGui")
 Orion.Name = "Orion"
 if syn then
 	syn.protect_gui(Orion)
-	Orion.Parent = game.CoreGui
+	Orion.Parent = CoreGui
 else
-	Orion.Parent = gethui() or game.CoreGui
+	Orion.Parent = gethui() or CoreGui
 end
 
 if gethui then
